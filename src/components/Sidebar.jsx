@@ -1,14 +1,55 @@
 import React from "react";
+import { useSidebar } from "../context/SidebarContext";
+import { Link, useLocation } from "react-router-dom";
 
-export default function Sidebar() {
+const navItems = [
+  { label: "Dashboard", path: "/" },
+  { label: "GPS", path: "/gps" },
+  { label: "Charts", path: "/charts" },
+  { label: "Wind", path: "/wind" },
+  { label: "Weather", path: "/weather" },
+  { label: "Settings", path: "/settings" },
+
+
+];
+
+export default function Sidebar({ nightMode }) {
+  const { isSidebarOpen, toggleSidebar } = useSidebar();
+  const location = useLocation();
+
   return (
-    <div className="w-64 bg-zinc-800 p-4 flex flex-col space-y-4">
-      <h2 className="text-2xl font-bold">SailDash</h2>
-      <nav className="flex flex-col space-y-2">
-        <a href="#" className="hover:bg-zinc-700 p-2 rounded">🧭 Dashboard</a>
-        <a href="#" className="hover:bg-zinc-700 p-2 rounded">⚙️ Settings</a>
-        <a href="#" className="hover:bg-zinc-700 p-2 rounded">📜 Logs</a>
-      </nav>
+    <div
+      className={`w-80 bg-zinc-800 p-4 flex flex-col justify-between items-center shadow-lg transform transition-transform duration-300 fixed h-full z-50 ${
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      } ${nightMode ? "text-amber-500" : "text-white"}`}
+    >
+      {/* Top: Title + Nav */}
+      <div className="w-full flex flex-col space-y-12 items-center">
+        <h2 className="text-4xl font-bold">Warrior Nav</h2>
+
+        <nav className="w-full flex flex-col space-y-8">
+          {navItems.map((item, index) => (
+            <Link
+            key={index}
+            to={item.path}
+            className={`flex items-center px-8 py-6 rounded-2xl w-full text-left text-2xl hover:bg-zinc-600 active:scale-95 transition-transform duration-100 ${
+              location.pathname === item.path ? "bg-zinc-700" : "bg-zinc-800"
+            }`}
+          >
+            <span>{item.label}</span>
+          </Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Bottom: Close Button */}
+      <button
+  onClick={toggleSidebar}
+  className="w-full mt-10 px-8 py-6 rounded-2xl text-left text-2xl hover:bg-zinc-600 bg-zinc-700 active:scale-95 transition-transform duration-100"
+  aria-label="Hide Sidebar"
+>
+  ← Close
+</button>
     </div>
   );
 }

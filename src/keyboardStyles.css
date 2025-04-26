@@ -1,0 +1,24 @@
+/* src/keyboardStyles.css */
+
+.hg-button {
+    background-color: #f0f0f0; /* Light gray background */
+    color: #000000; /* Black text for visibility */
+    font-size: 1.2rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 3px;
+  }
+  
+  .hg-button:hover {
+    background-color: #dcdcdc;
+  }
+  
+  .hg-row {
+    margin-bottom: 5px;
+  }
+  
+  .hg-theme-default {
+    background-color: #e0e0e0; /* Overall keyboard background */
+    padding: 10px;
+    border-radius: 10px;
+  }

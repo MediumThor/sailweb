@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from "react";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
-import Dashboard from "./components/Dashboard";
+import { MemoryRouter as Router, Routes, Route } from "react-router-dom";
+import { DisplaySettingsProvider } from "./context/DisplaySettingsContext";
+import { NavpointsProvider } from "./context/NavpointsContext";
+import AppLayout from "./components/AppLayout"; // 👈 import AppLayout
+import { SidebarProvider, useSidebar } from "./context/SidebarContext";
+import { ModalProvider } from "./context/ModalContext";
+import { KeyboardProvider } from "./context/KeyboardContext";
+import TouchKeyboard from "./components/TouchKeyboard";
+
+
 
 function App() {
   const [signalkData, setSignalkData] = useState({});
+  const [nightMode, setNightMode] = useState(false);
 
   useEffect(() => {
     const socket = new WebSocket("ws://192.168.68.57:3000/signalk/v1/stream");
@@ -26,18 +34,40 @@ function App() {
     return () => socket.close();
   }, []);
 
+  // ⬇️ Define Preload URLs
+  const { lat, lon } = { lat: 43.107, lon: -88.055 }; // fallback dummy GPS
+  const baseUrl = "https://embed.windy.com/embed.html";
+
+  const radarUrl = `${baseUrl}?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=kt&zoom=9&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lon}`;
+  const liveWindUrl = `${baseUrl}?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=kt&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=${lat}&lon=${lon}`;
+  const forecastUrl = `${baseUrl}?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=kt&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&detail=true`;
+
   return (
-    <div className="flex h-screen bg-zinc-900 text-white">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-4">
-          <Dashboard signalkData={signalkData} />
-        </main>
-      </div>
-    </div>
+    <KeyboardProvider>
+
+    <DisplaySettingsProvider>
+<NavpointsProvider>
+    <ModalProvider>
+      <SidebarProvider>
+        <Router>
+          <AppLayout nightMode={nightMode} setNightMode={setNightMode} signalkData={signalkData} />
+        </Router>
+
+        {/* Global Hidden Preloaders for Weather */}
+        <div className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none overflow-hidden z-0">
+  <iframe src={radarUrl} frameBorder="0" allowFullScreen title="Radar Preload" />
+  <iframe src={liveWindUrl} frameBorder="0" allowFullScreen title="Live Wind Preload" />
+  <iframe src={forecastUrl} frameBorder="0" allowFullScreen title="Forecast Preload" />
+</div>
+
+      </SidebarProvider>
+    </ModalProvider>
+    </NavpointsProvider>
+    </DisplaySettingsProvider>
+    <TouchKeyboard />
+    </KeyboardProvider>
+
   );
 }
 
 export default App;
-
