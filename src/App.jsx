@@ -11,8 +11,10 @@ import TouchKeyboard from "./components/TouchKeyboard";
 
 
 function App() {
-  const [signalkData, setSignalkData] = useState({});
   const [nightMode, setNightMode] = useState(false);
+  const [brightness, setBrightness] = useState(100);
+  const signalkData = {}; // however you're getting it
+
 
   useEffect(() => {
     const socket = new WebSocket("ws://192.168.68.57:3000/signalk/v1/stream");
@@ -50,8 +52,15 @@ function App() {
     <ModalProvider>
       <SidebarProvider>
         <Router>
-          <AppLayout nightMode={nightMode} setNightMode={setNightMode} signalkData={signalkData} />
-        </Router>
+        <AppLayout
+  nightMode={nightMode}
+  setNightMode={setNightMode}
+  brightness={brightness}
+  setBrightness={setBrightness} 
+  signalkData={signalkData}
+/>
+
+       </Router>
 
         {/* Global Hidden Preloaders for Weather */}
         <div className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none overflow-hidden z-0">

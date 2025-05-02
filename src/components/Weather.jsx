@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useModal } from "../context/ModalContext";
 import WindowModal from "../context/WindowModal";
 import currentLocation from "../utils/currentLocation";
-import PreviewFrame from "../context/PreviewFrame";
 
 export default function Weather() {
   const { openModal } = useModal();
   const { lat, lon } = currentLocation;
-  const baseUrl = "https://embed.windy.com/embed.html";
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [windyLoaded, setWindyLoaded] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -24,12 +23,19 @@ export default function Weather() {
     };
   }, []);
 
-  const radarUrl = `${baseUrl}?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=kt&zoom=7&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lon}`;
-  const liveWindUrl = `${baseUrl}?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=kt&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=${lat}&lon=${lon}`;
-  const forecastUrl = `${baseUrl}?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=kt&zoom=6&overlay=wind&product=ecmwf&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&detail=true`;
+  useEffect(() => {
+    if (!windyLoaded) {
+      const script = document.createElement("script");
+      script.src = "https://windy.app/widgets-code/forecast/windy_forecast_async.js?v164";
+      script.async = true;
+      script.dataset.cfasync = "false";
+      document.body.appendChild(script);
+      setWindyLoaded(true);
+    }
+  }, [windyLoaded]);
 
   return (
-    <div className="flex flex-col items-center space-y-10">
+    <div className="flex flex-col items-center space-y-10 overflow-hidden">
       {/* Connection Status */}
       <div className="text-2xl font-bold mt-4 mb-8">
         {!isOnline && (
@@ -39,7 +45,7 @@ export default function Weather() {
 
       {/* Top Row: Radar + Live Wind */}
       <div className="flex flex-row w-full max-w-7xl space-x-8">
-        {/* Radar */}
+        {/* Radar Button */}
         <button
           onClick={() => {
             setTimeout(() => openModal("radar"), 100);
@@ -47,12 +53,16 @@ export default function Weather() {
           className="flex-1 bg-zinc-700 p-6 rounded-2xl hover:bg-zinc-600 overflow-hidden active:scale-95 transition-transform duration-100"
         >
           <div className="flex flex-col items-center">
-            <span className="text-4xl mb-6">Radar</span>
-            <PreviewFrame src={radarUrl} />
+            <span className="text-3xl mb-4">Radar</span>
+            <img
+              src="/images/radar.png"
+              alt="Radar Preview"
+              className="rounded-xl shadow-lg w-full h-60 object-cover"
+            />
           </div>
         </button>
 
-        {/* Live Wind */}
+        {/* Live Wind Button */}
         <button
           onClick={() => {
             setTimeout(() => openModal("liveWind"), 100);
@@ -60,36 +70,46 @@ export default function Weather() {
           className="flex-1 bg-zinc-700 p-6 rounded-2xl hover:bg-zinc-600 overflow-hidden active:scale-95 transition-transform duration-100"
         >
           <div className="flex flex-col items-center">
-            <span className="text-4xl mb-6">Live Wind</span>
-            <PreviewFrame src={liveWindUrl} />
+            <span className="text-3xl mb-4">Live Wind</span>
+            <img
+              src="/images/wind.png"
+              alt="Live Wind Preview"
+              className="rounded-xl shadow-lg w-full h-60 object-cover"
+            />
           </div>
         </button>
       </div>
 
-      {/* Bottom Row: Wind Forecast */}
-      <button
-        onClick={() => {
-          setTimeout(() => openModal("forecast"), 100);
-        }}
-        className="bg-zinc-700 p-6 rounded-2xl hover:bg-zinc-600 w-full max-w-6xl overflow-hidden active:scale-95 transition-transform duration-100"
-      >
-        <div className="flex flex-col items-center">
-          <span className="text-4xl mb-6">Wind Forecast</span>
-          <PreviewFrame src={forecastUrl} />
-        </div>
-      </button>
+      {/* Bottom Row: Wind Forecast Widget */}
+      <div className="bg-zinc-700 p-6 rounded-2xl w-full max-w-7xl flex flex-col items-center overflow-hidden" style={{ maxHeight: "500px" }}>
+        <span className="text-1xl mb-4"></span>
+        <div
+          data-windywidget="forecast"
+          data-thememode="black"
+          data-tempunit="F"
+          data-lat={lat}
+          data-lng={lon}
+          data-appid="widgets_46134cff4e"
+          className="w-full"
+          style={{ minHeight: "400px", maxHeight: "400px", overflow: "hidden" }}
+        ></div>
+      </div>
 
       {/* Fullscreen Modals */}
       <WindowModal name="radar">
-        <iframe src={radarUrl} className="w-full h-full border-0" allowFullScreen />
+        <img
+          src="/images/radar.png"
+          alt="Radar Fullscreen"
+          className="w-full h-full object-contain bg-black"
+        />
       </WindowModal>
 
       <WindowModal name="liveWind">
-        <iframe src={liveWindUrl} className="w-full h-full border-0" allowFullScreen />
-      </WindowModal>
-
-      <WindowModal name="forecast">
-        <iframe src={forecastUrl} className="w-full h-full border-0" allowFullScreen />
+        <img
+          src="/images/wind.png"
+          alt="Live Wind Fullscreen"
+          className="w-full h-full object-contain bg-black"
+        />
       </WindowModal>
     </div>
   );

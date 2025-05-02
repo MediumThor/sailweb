@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 
-export default function TouchKeyboard({
+export default function WifiKeyboard({
   input,
   onInputChange,
   visible = false,
@@ -27,13 +27,14 @@ export default function TouchKeyboard({
     setLayout(layout === "numbers" ? "default" : "numbers");
   };
 
-  if (!visible) {
-    return null; // 🛡️ Completely remove from DOM when invisible
-  }
-
   return (
-    <div className="fixed bottom-0 left-0 w-full flex flex-col items-center z-[99999] animate-slide-up overflow-hidden">
-      <div className="bg-gray-300 bg-opacity-20 p-6 rounded-t-3xl w-full max-w-6xl shadow-2xl flex flex-col justify-center">
+    <div
+      className={`fixed bottom-0 left-0 w-full flex flex-col items-center z-[99999] transform transition-transform duration-500 ${
+        visible ? "translate-y-0" : "translate-y-full"
+      }`}
+    >
+      <div className="bg-gray-300 bg-opacity-50 p-6 rounded-t-3xl w-full max-w-7xl shadow-2xl flex flex-col justify-center">
+        {/* 📝 bg-gray-300 + bg-opacity-50 makes it semi-transparent */}
         <Keyboard
           keyboardRef={(r) => (keyboardRef.current = r)}
           input={input}
@@ -80,44 +81,26 @@ export default function TouchKeyboard({
       <div className="flex gap-4 p-4">
         <button
           onClick={toggleShift}
-          className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-5 text-xl rounded-lg"
+          className="bg-blue-500 hover:bg-blue-600 text-white py-4 px-6 text-2xl rounded-lg"
         >
           {shiftActive ? "abc" : "SHIFT"}
         </button>
         <button
           onClick={toggleNumbers}
-          className="bg-green-500 hover:bg-green-600 text-white py-3 px-5 text-xl rounded-lg"
+          className="bg-green-500 hover:bg-green-600 text-white py-4 px-6 text-2xl rounded-lg"
         >
           {layout === "numbers" ? "ABC" : "123"}
         </button>
       </div>
 
       <style jsx global>{`
-        @keyframes slide-up {
-          0% {
-            transform: translateY(100%);
-          }
-          100% {
-            transform: translateY(0);
-          }
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.15s ease-out forwards;
-        }
-
-        /* 🛡️ Lock the page horizontally while animating */
-        html, body {
-          overflow-x: hidden;
-        }
-
         .custom-keyboard .hg-button {
           background: rgb(50, 102, 154);
           color: #000;
-          font-size: 3.5rem;
-          padding: 1.8rem;
-          min-width: 80px;
-          min-height: 80px;
+          font-size: 5rem;
+          padding: 2.5rem;
+          min-width: 100px;
+          min-height: 100px;
           border: 3px solid #ccc;
           border-radius: 12px;
           margin: 6px;

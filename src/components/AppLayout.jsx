@@ -13,9 +13,13 @@ import AddNavpointModal from "./AddNavpointModal";
 import SetDestinationModal from "./SetDestinationModal";
 import WindowModal from "../context/WindowModal"; // Correct the import path if needed
 import currentLocation from "../utils/currentLocation";
+import Wifi from "./Wifi";
+import Music from "./Music";
+import Spotify from "./Spotify/Spotify";
+import SpotifyPlayer from "./Spotify/SpotifyPlayer";
+import SpotifyCallback from "./Spotify/SpotifyCallback";
 
-
-export default function AppLayout({ nightMode, signalkData, setNightMode }) {
+export default function AppLayout({ nightMode, signalkData, setNightMode, brightness, setBrightness}){
   const { lat, lon } = currentLocation;
 
   const { isSidebarOpen } = useSidebar();
@@ -29,17 +33,25 @@ export default function AppLayout({ nightMode, signalkData, setNightMode }) {
   const forecastUrl = `${baseUrl}?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=kt&zoom=6&overlay=wind&product=ecmwf&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&detail=true`;
 
   return (
-    <div className={`flex h-screen transition-all duration-300 bg-zinc-900 ${nightMode ? "text-amber-500" : "text-white"}`}>
-      <Sidebar nightMode={nightMode} />
+<div
+  className={`flex h-screen transition-all duration-300 bg-zinc-900 ${nightMode ? "text-amber-500" : "text-white"}`}
+  style={{ filter: `brightness(${brightness / 100})` }}
+>      <Sidebar nightMode={nightMode} />
       <div className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ${isSidebarOpen ? "ml-80" : "ml-0"}`}>
         <Header nightMode={nightMode} />
         <main className="flex-1 overflow-y-auto p-4">
           <Routes>
             <Route path="/" element={<Dashboard signalkData={signalkData} />} />
-            <Route path="/settings" element={<Settings nightMode={nightMode} setNightMode={setNightMode} />} />
+            <Route path="/settings" element={<Settings nightMode={nightMode} setNightMode={setNightMode} brightness={brightness} setBrightness={setBrightness} />} />
             <Route path="/charts" element={<Charts />} />
             <Route path="/gps" element={<GPS />} />
             <Route path="/weather" element={<Weather />} />
+            <Route path="/wifi" element={<Wifi />} />
+            <Route path="/music" element={<Music />} />
+            <Route path="/music/spotify" element={<Spotify />} />         // This page has the "Login" button
+            <Route path="/callback" element={<SpotifyCallback />} />
+            <Route path="/music/spotify/player" element={<SpotifyPlayer />} /> // Player UI
+
           </Routes>
         </main>
       </div>

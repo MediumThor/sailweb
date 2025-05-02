@@ -9,6 +9,8 @@ const navItems = [
   { label: "Wind", path: "/wind" },
   { label: "Weather", path: "/weather" },
   { label: "Settings", path: "/settings" },
+  { label: "Music", path: "/music" },
+
 
 
 ];
@@ -24,8 +26,8 @@ export default function Sidebar({ nightMode }) {
       } ${nightMode ? "text-amber-500" : "text-white"}`}
     >
       {/* Top: Title + Nav */}
-      <div className="w-full flex flex-col space-y-12 items-center">
-        <h2 className="text-4xl font-bold">Warrior Nav</h2>
+      <div className="w-full flex flex-col space-y-8 items-center">
+        <h2 className="text-4xl font-bold">SailDash</h2>
 
         <nav className="w-full flex flex-col space-y-8">
           {navItems.map((item, index) => (

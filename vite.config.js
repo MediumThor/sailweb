@@ -6,8 +6,11 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0', // ✅ Keeps it accessible across your network (e.g., pi5.local)
+    port: 5173,
+    allowedHosts: ['.ngrok-free.app'],
     watch: {
-      ignored: [path.resolve(__dirname, 'public/charts/**')],  // Prevent Vite from watching all the PNG files
+      ignored: [path.resolve(__dirname, 'public/charts/**')],
     },
   },
 });
