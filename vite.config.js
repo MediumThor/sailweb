@@ -9,8 +9,12 @@ export default defineConfig({
     host: '0.0.0.0', // ✅ Keeps it accessible across your network (e.g., pi5.local)
     port: 5173,
     allowedHosts: ['.ngrok-free.app'],
+    allowedHosts: ['pi5.local'], // ✅ this line allows access from pi5.local
+
     watch: {
       ignored: [path.resolve(__dirname, 'public/charts/**')],
     },
+    
   },
+  
 });

@@ -7,10 +7,9 @@ export default function TouchKeyboard({
   onInputChange,
   visible = false,
   resetSignal,
+  layout = "default",
 }) {
   const keyboardRef = useRef(null);
-  const [layout, setLayout] = useState("default");
-  const [shiftActive, setShiftActive] = useState(false);
 
   useEffect(() => {
     if (keyboardRef.current) {
@@ -18,18 +17,25 @@ export default function TouchKeyboard({
     }
   }, [resetSignal, input]);
 
-  const toggleShift = () => {
-    setShiftActive(!shiftActive);
-    setLayout(shiftActive ? "default" : "shift");
+  const handleKeyPress = (button) => {
+    if (layout === "raceTime") {
+      if (/^[0-9:]$/.test(button)) {
+        onInputChange((prev) => prev + button);
+      } else if (button === "{bksp}") {
+        onInputChange((prev) => prev.slice(0, -1));
+      }
+    } else {
+      if (button === "{bksp}") {
+        onInputChange((prev) => prev.slice(0, -1));
+      } else if (button !== "{space}") {
+        onInputChange((prev) => prev + button);
+      } else {
+        onInputChange((prev) => prev + " ");
+      }
+    }
   };
 
-  const toggleNumbers = () => {
-    setLayout(layout === "numbers" ? "default" : "numbers");
-  };
-
-  if (!visible) {
-    return null; // 🛡️ Completely remove from DOM when invisible
-  }
+  if (!visible) return null;
 
   return (
     <div className="fixed bottom-0 left-0 w-full flex flex-col items-center z-[99999] animate-slide-up overflow-hidden">
@@ -38,24 +44,10 @@ export default function TouchKeyboard({
           keyboardRef={(r) => (keyboardRef.current = r)}
           input={input}
           onChange={onInputChange}
-          onKeyPress={(button) => {
-            if (button === "{bksp}") {
-              onInputChange((prev) => prev.slice(0, -1));
-            } else if (button !== "{space}") {
-              onInputChange((prev) => prev + button);
-            } else {
-              onInputChange((prev) => prev + " ");
-            }
-          }}
+          onKeyPress={handleKeyPress}
           layoutName={layout}
           layout={{
             default: [
-              "q w e r t y u i o p",
-              "a s d f g h j k l",
-              "z x c v b n m",
-              "{space} {bksp}",
-            ],
-            shift: [
               "Q W E R T Y U I O P",
               "A S D F G H J K L",
               "Z X C V B N M",
@@ -68,6 +60,12 @@ export default function TouchKeyboard({
               "- 0 .",
               "{bksp}",
             ],
+            raceTime: [
+              "1 2 3",
+              "4 5 6",
+              "7 8 9",
+              ": 0 {bksp}",
+            ],
           }}
           display={{
             "{bksp}": "⌫",
@@ -77,20 +75,12 @@ export default function TouchKeyboard({
         />
       </div>
 
-      <div className="flex gap-4 p-4">
-        <button
-          onClick={toggleShift}
-          className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-5 text-xl rounded-lg"
-        >
-          {shiftActive ? "abc" : "SHIFT"}
-        </button>
-        <button
-          onClick={toggleNumbers}
-          className="bg-green-500 hover:bg-green-600 text-white py-3 px-5 text-xl rounded-lg"
-        >
-          {layout === "numbers" ? "ABC" : "123"}
-        </button>
-      </div>
+      {/* Hide shift/number buttons if in locked layout */}
+      {layout !== "raceTime" && (
+        <div className="flex gap-4 p-4">
+          {/* layout toggles could go here if needed */}
+        </div>
+      )}
 
       <style jsx global>{`
         @keyframes slide-up {
@@ -106,7 +96,6 @@ export default function TouchKeyboard({
           animation: slide-up 0.15s ease-out forwards;
         }
 
-        /* 🛡️ Lock the page horizontally while animating */
         html, body {
           overflow-x: hidden;
         }
@@ -122,9 +111,11 @@ export default function TouchKeyboard({
           border-radius: 12px;
           margin: 6px;
         }
+
         .custom-keyboard .hg-button:hover {
           background: #ffe082;
         }
+
         .custom-keyboard {
           background: transparent;
         }

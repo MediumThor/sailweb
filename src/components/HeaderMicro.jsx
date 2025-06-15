@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSidebar } from "../context/SidebarContext";
 
-export default function Header({ nightMode }) {
+export default function HeaderMicro({ nightMode }) {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
   const [isWifiConnected, setIsWifiConnected] = useState(false);
   const [boatName, setBoatName] = useState(() => localStorage.getItem("boatName") || "Saildash");
@@ -33,7 +33,7 @@ export default function Header({ nightMode }) {
   
 
   return (
-    <header className="bg-zinc-800 px-4 py-4 flex items-center justify-between shadow z-50 h-24 relative">
+    <header className="bg-zinc-800 px-4 py-4 flex items-center justify-between shadow z-50 h-12 relative">
       {/* Sidebar Hamburger Button */}
       {!isSidebarOpen && (
         <button

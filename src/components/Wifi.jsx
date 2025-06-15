@@ -14,7 +14,7 @@ export default function Wifi() {
   const fetchNetworks = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8085/api/wifi/scan");
+      const res = await fetch(`http://${window.location.hostname}:8085/api/wifi/scan`);
       const data = await res.json();
       if (data.connected) setConnected(data.connected);
       if (data.networks) setNetworks(data.networks);
@@ -55,53 +55,47 @@ export default function Wifi() {
       setStatusMessage("Password is required.");
       return;
     }
-
+  
     setShowPasswordModal(false);
     setKeyboardVisible(false);
     setStatusMessage(`Connecting to ${selectedSSID}...`);
-
+  
+    console.log("▶️ Attempting to connect to:", selectedSSID, "with password:", password);
+  
     try {
-      const res = await fetch("http://localhost:8082/api/wifi/connect", {
+      const res = await fetch(`http://${window.location.hostname}:8085/api/wifi/connect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ssid: selectedSSID, password }),
       });
-      const data = await res.json();
-      console.log(data.message || "Trying to connect...");
-
-      // Now poll for real connection
-      let retries = 20;
-      let connectedNow = null;
-
-      while (retries > 0) {
-        const scanRes = await fetch("http://localhost:8082/api/wifi/scan");
-        const scanData = await scanRes.json();
-        connectedNow = scanData.connected;
-
-        if (connectedNow === selectedSSID) {
-          break;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        retries--;
+  
+      const text = await res.text();
+      console.log("⬅️ Raw response from backend:", text);
+  
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("❌ Failed to parse backend response as JSON:", err);
+        setStatusMessage("Invalid server response.");
+        return;
       }
-
-      if (connectedNow === selectedSSID) {
-        setConnected(selectedSSID);
-        setStatusMessage(`Successfully connected to ${selectedSSID}`);
-      } else {
-        setStatusMessage(`Failed to connect after multiple attempts.`);
+  
+      if (!res.ok) {
+        console.error("❌ Connection error:", data.error || text);
+        setStatusMessage(data.error || "Failed to connect.");
+        return;
       }
-
+  
+      console.log("✅ Connection initiated:", data);
+      setStatusMessage(`Connected to ${selectedSSID}`);
       fetchNetworks();
     } catch (err) {
-      console.error("Connect error:", err);
+      console.error("❌ Fetch error:", err);
       setStatusMessage("Failed to connect.");
     }
-
-    setShowPasswordModal(false);
-    setKeyboardVisible(false);
   };
+  
 
   return (
     <div className="space-y-6">

@@ -2,15 +2,13 @@ import React from "react";
 import { useSidebar } from "../context/SidebarContext";
 import { Link, useLocation } from "react-router-dom";
 
-const navItems = [
-  { label: "Dashboard", path: "/" },
-  { label: "Charts", path: "/charts" },
-  { label: "Race", path: "/race" },
-  { label: "Weather", path: "/weather" },
-  { label: "Settings", path: "/settings" },
-];
+  const navItems = [
+    { label: "Dashboard", path: "/" },
+    { label: "Charts", path: "/charts" },
+  ];
 
-export default function Sidebar({ nightMode }) {
+
+export default function SidebarMicro({ nightMode }) {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
 

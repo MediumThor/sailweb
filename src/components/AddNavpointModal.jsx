@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavpoints } from "../context/NavpointsContext";
 import TouchKeyboard from "./TouchKeyboard";
+import liveData from "../utils/liveData";
+
 
 export default function AddNavpointModal({ closeModal, lat: presetLat, lon: presetLon }) {
   const { addNavpoint } = useNavpoints();
@@ -98,6 +100,23 @@ export default function AddNavpointModal({ closeModal, lat: presetLat, lon: pres
         >
           Save
         </button>
+
+        <button
+  onClick={() => {
+    const current = liveData.get();
+    if (current.lat && current.lon) {
+      const latFixed = current.lat.toFixed(5);
+      const lonFixed = current.lon.toFixed(5);
+      setLat(latFixed);
+      setLon(lonFixed);
+      if (activeField === "lat") setKeyboardInput(latFixed);
+      if (activeField === "lon") setKeyboardInput(lonFixed);
+    }
+  }}
+  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mb-2"
+>
+  Use Current Location
+</button>
       </div>
 
       <TouchKeyboard

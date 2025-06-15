@@ -19,13 +19,20 @@ const [boatNameInput, setBoatNameInput] = useState(boatName);
 const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
 
 
-  const {
-    showSpeedPanel, setShowSpeedPanel,
-    showWindPanel, setShowWindPanel,
-    showGpsMarker, setShowGpsMarker,
-    showSoundings, setShowSoundings,
-    showNavpoints, setShowNavpoints,   // 🛠️ ADD this line!!
-  } = useDisplaySettings();
+const {
+  showSpeedPanel, setShowSpeedPanel,
+  showWindPanel, setShowWindPanel,
+  showGpsMarker, setShowGpsMarker,
+  showSoundings, setShowSoundings,
+  showNavpoints, setShowNavpoints,
+  autoAdvanceDistance, setAutoAdvanceDistance,
+  showAutoAdvanceRadius, setShowAutoAdvanceRadius,
+  mapSource, setMapSource,
+  showBathyShallow, setShowBathyShallow,
+  showBathyDeep, setShowBathyDeep,
+  compassOffset, setCompassOffset,
+} = useDisplaySettings();
+
 
   const { navpoints, removeNavpoint, fetchNavpoints } = useNavpoints();
 
@@ -61,13 +68,13 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="h-full overflow-y-auto px-4 py-6 space-y-6">
       <audio ref={clickSoundRef} src="/click.mp3" preload="auto" />
 
       <h2 className="text-3xl font-bold">Settings</h2>
 
       <div className="bg-zinc-800 rounded-lg p-4 flex items-center justify-between">
-  <span className="text-xl">Boat Name</span>
+  <span className="text-2xl">Boat Name</span>
   <button
     onClick={() => {
       setShowBoatNameModal(true);
@@ -81,7 +88,7 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
 
  {/* Night Mode Toggle */}
  <div className="bg-zinc-800 rounded-lg p-4 flex items-center justify-between">
-        <span className="text-xl">Night Mode</span>
+        <span className="text-2xl">Night Mode</span>
         <input
           type="checkbox"
           checked={nightMode}
@@ -90,9 +97,22 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
         />
       </div>
 
+
+
+          {/* Manage Wifi */}
+
+      <button
+  onClick={() => navigate("/wifi")}
+  className="bg-zinc-700 text-white py-2 px-4 rounded-lg"
+>
+  Manage Wi-Fi
+</button>
+
+
+
    {/* Brightness Slider */}
 <div className="bg-zinc-800 rounded-lg p-4 space-y-4">
-  <h3 className="text-xl font-semibold mb-2">Screen Brightness</h3>
+  <h3 className="text-2xl font-semibold mb-2">Screen Brightness</h3>
   <input
   type="range"
   min="10"
@@ -128,16 +148,32 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
 </div>
 
 
-
+{/* Compass Calibration */}
+<div className="bg-zinc-800 rounded-lg p-4 space-y-4">
+  <h3 className="text-2xl font-semibold">Compass Calibration</h3>
+  <label className="block text-sm font-medium text-white mb-1 flex justify-between items-center">
+    <span>Offset</span>
+    <span className="text-amber-400 font-bold text-base">{compassOffset}°</span>
+  </label>
+  <input
+    type="range"
+    min="-30"
+    max="30"
+    step="1"
+    value={compassOffset}
+    onChange={(e) => setCompassOffset(parseInt(e.target.value))}
+    className="w-full"
+  />
+</div>
 
 
       {/* Chart Display Toggles */}
       <div className="bg-zinc-800 rounded-lg p-4 space-y-4">
-        <h3 className="text-xl font-semibold">Chart Display</h3>
+        <h3 className="text-2xl font-semibold">Chart Display</h3>
 
         {/* Toggle Speed/Heading/Depth */}
         <label className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg cursor-pointer">
-          <span className="text-lg">Show Speed / Heading / Depth</span>
+          <span className="text-2xl">Show Speed / Heading / Depth</span>
           <input
             type="checkbox"
             checked={showSpeedPanel}
@@ -148,7 +184,7 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
 
         {/* Toggle Wind Panel */}
         <label className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg cursor-pointer">
-          <span className="text-lg">Show Wind Data</span>
+          <span className="text-2xl">Show Wind Data</span>
           <input
             type="checkbox"
             checked={showWindPanel}
@@ -159,7 +195,7 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
 
         {/* Toggle GPS Marker */}
         <label className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg cursor-pointer">
-          <span className="text-lg">Show GPS Marker</span>
+          <span className="text-2xl">Show GPS Marker</span>
           <input
             type="checkbox"
             checked={showGpsMarker}
@@ -170,7 +206,7 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
 
         {/* Toggle Soundings */}
         <label className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg cursor-pointer">
-          <span className="text-lg">Show Soundings</span>
+          <span className="text-2xl">Show Soundings</span>
           <input
             type="checkbox"
             checked={showSoundings}
@@ -181,7 +217,7 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
 
         {/* 🔥 Toggle Navpoints */}
         <label className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg cursor-pointer">
-          <span className="text-lg">Show Navpoints</span>
+          <span className="text-2xl">Show Navpoints</span>
           <input
             type="checkbox"
             checked={showNavpoints}
@@ -191,19 +227,86 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
         </label>
       </div>
 
-    {/* Manage Wifi */}
 
-    <button
-  onClick={() => navigate("/wifi")}
-  className="bg-zinc-700 text-white py-2 px-4 rounded-lg"
->
-  Manage Wi-Fi
-</button>
+{/* Map Source Toggle */}
+<div className="bg-zinc-800 rounded-lg p-4 space-y-4">
+  <h3 className="text-2xl font-semibold">Map Source (Requires Wi-Fi)</h3>
+
+  <label className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg cursor-pointer">
+    <span className="text-2xl">Use Esri Satellite (Online)</span>
+    <input
+      type="checkbox"
+      checked={mapSource === "esri"}
+      onChange={() => setMapSource(mapSource === "esri" ? "offline" : "esri")}
+      className="w-6 h-6"
+    />
+  </label>
+
+  <label className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg cursor-pointer">
+  <span className="text-2xl">Show Bathymetry – Shallow</span>
+  <input
+    type="checkbox"
+    checked={showBathyShallow}
+    onChange={() => {
+      setShowBathyShallow(!showBathyShallow);
+      playClickSound();
+    }}
+    className="w-6 h-6"
+  />
+</label>
+
+<label className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg cursor-pointer">
+  <span className="text-2xl">Show Bathymetry – Deep</span>
+  <input
+    type="checkbox"
+    checked={showBathyDeep}
+    onChange={() => {
+      setShowBathyDeep(!showBathyDeep);
+      playClickSound();
+    }}
+    className="w-6 h-6"
+  />
+</label>
+</div>
+
+
+
+
+
+{/* Waypoint Auto-Advance*/}
+
+    <div className="bg-zinc-800 rounded-lg p-4 flex items-center justify-between gap-4">
+  <div className="flex-1">
+  <label className="block text-sm font-medium text-white mb-1 flex justify-between items-center">
+  <span>Auto-advance distance</span>
+  <span className="text-amber-400 font-bold text-base">{autoAdvanceDistance} m</span>
+</label>
+<input
+  type="range"
+  min="10"
+  max="300"
+  step="5"
+  value={autoAdvanceDistance}
+  onChange={(e) => setAutoAdvanceDistance(parseInt(e.target.value))}
+  className="w-full"
+/>
+
+  </div>
+  <div className="flex flex-col items-center justify-center">
+    <label className="text-white text-sm mb-2">Show on Chart</label>
+    <input
+      type="checkbox"
+      checked={showAutoAdvanceRadius}
+      onChange={() => setShowAutoAdvanceRadius(!showAutoAdvanceRadius)}
+      className="w-6 h-6"
+    />
+  </div>
+</div>
 
 
 {/* Manage Navpoints Section */}
 <div className="bg-zinc-800 rounded-lg p-4 space-y-4">
-  <h3 className="text-xl font-semibold">Manage Navpoints</h3>
+  <h3 className="text-2xl font-semibold">Manage Navpoints</h3>
 
   {/* Export / Import Controls */}
   <div className="flex justify-between gap-4">
@@ -269,7 +372,7 @@ const [keyboardResetSignal, setKeyboardResetSignal] = useState(0);
       <div key={point.__index} className="flex items-center justify-between bg-zinc-700 p-3 rounded-lg">
         <div>
           <div className="font-bold">{point.name}</div>
-          <div className="text-sm text-zinc-400">
+          <div className="text-lg text-zinc-400">
             {point.lat.toFixed(4)}, {point.lon.toFixed(4)}
           </div>
         </div>

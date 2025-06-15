@@ -6,12 +6,12 @@ import liveData from "../utils/liveData";
 import { useDisplaySettings } from "../context/DisplaySettingsContext";
 import { useNavpoints } from "../context/NavpointsContext";
 import { useModal } from "../context/ModalContext";
-import AddNavpointModal from "../components/AddNavpointModal";
-import SetDestinationModal from "../components/SetDestinationModal";
+import AddNavpointModal from "./AddNavpointModal";
+import SetDestinationModal from "./SetDestinationModal";
 import { calculateBearing } from "../utils/calculateBearing";
 import LaylineModal from "./LaylineModal";
 import clsx from "clsx";
-import { syncValue } from "../utils/syncStorage";
+
 
 // Click handler for adding marker
 function ClickPopup({ setClickLatLng, openModal }) {
@@ -46,16 +46,6 @@ export default function Charts({ layline, setLayline }) {
   const lon = isValidCoord(liveLon) ? liveLon : fallbackLatLon[1];
   const center = [lat, lon];
   const currentDestination = destinations.find((d) => isValidCoord(d.lat) && isValidCoord(d.lon));
-
-  const distanceToDestination = currentDestination &&
-  isValidCoord(lat) &&
-  isValidCoord(lon)
-  ? L.latLng(lat, lon).distanceTo(
-      L.latLng(currentDestination.lat, currentDestination.lon)
-    ) / 1852
-  : null;
-
-  
   const { mapSource } = useDisplaySettings();
   const [etaNextMin, setEtaNextMin] = useState(null);
 const [etaNextSec, setEtaNextSec] = useState(null);
@@ -64,28 +54,21 @@ const [etaFullSec, setEtaFullSec] = useState(null);
 
 const speedRef = useRef();
 const headingRef = useRef();
-
 const [isSpeedPanelExpanded, setIsSpeedPanelExpanded] = useState(false);
 const [isHeadingPanelExpanded, setIsHeadingPanelExpanded] = useState(false);
-
 const [speedFocusKey, setSpeedFocusKey] = useState("speed");
 const [headingFocusKey, setHeadingFocusKey] = useState("heading");
-
 const [isWindPanelExpanded, setIsWindPanelExpanded] = useState(false);
 const [windFocusKey, setWindFocusKey] = useState("true");
 const windRef = useRef();
 const compass = liveData.getCompassHeading();
 
-  
-const {
-  showBathyShallow,
-  showBathyDeep,
-  showAutoAdvanceRadius,  // ✅ Add this
-  showWindPanel,
-  showGpsMarker,
-  showSoundings,
-  showNavpoints,
-} = useDisplaySettings();
+
+  const {
+    showBathyShallow,
+    showBathyDeep,
+    // other settings...
+  } = useDisplaySettings();
 
   const tileBase =
   window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
@@ -122,15 +105,49 @@ const {
 
 
 
+  useEffect(() => {
+    if (
+      currentDestination &&
+      isValidCoord(lat) &&
+      isValidCoord(lon) &&
+      isValidCoord(currentDestination.lat) &&
+      isValidCoord(currentDestination.lon)
+    ) {
+      const bearing = calculateBearing(lat, lon, currentDestination.lat, currentDestination.lon);
+      liveData.set({ bearingToDestination: bearing });
+    } else {
+      liveData.set({ bearingToDestination: null });
+    }
+  }, [lat, lon, currentDestination]);
+
+  const distanceToDestination = currentDestination && isValidCoord(lat) && isValidCoord(lon)
+    ? L.latLng(lat, lon).distanceTo(L.latLng(currentDestination.lat, currentDestination.lon)) / 1852
+    : null;
+
+    const {
+      showSpeedPanel,
+      showWindPanel,
+      showGpsMarker,
+      showSoundings,
+      showNavpoints,
+      showAutoAdvanceRadius, // ✅ you forgot this line
+    } = useDisplaySettings();
+    
+
+
+    
+
+
+
   const tempMarkerIcon = L.icon({
-    iconUrl: "icons/location-pin.png", // Replace with your boat icon URL
+    iconUrl: "../icons/location-pin.png", // Replace with your boat icon URL
     iconSize: [32, 32], // Adjust the size to fit the image
     iconAnchor: [16, 32], // Anchor point of the icon (typically bottom center)
     popupAnchor: [0, -32], // Position the popup above the marker
   });
 
   const navpointIcon = L.icon({
-    iconUrl: "icons/location-pin.png", // Replace with your boat icon URL
+    iconUrl: "../icons/location-pin.png", // Replace with your boat icon URL
     iconSize: [32, 32], // Adjust the size to fit the image
     iconAnchor: [16, 32], // Anchor point of the icon (typically bottom center)
     popupAnchor: [0, -32], // Position the popup above the marker
@@ -183,26 +200,7 @@ const {
   }, [lat, lon, destinations, autoAdvanceDistance]);
 
 
-  useEffect(() => {
-    if (
-      currentDestination &&
-      isValidCoord(lat) &&
-      isValidCoord(lon) &&
-      isValidCoord(currentDestination.lat) &&
-      isValidCoord(currentDestination.lon)
-    ) {
-      const bearing = calculateBearing(
-        lat,
-        lon,
-        currentDestination.lat,
-        currentDestination.lon
-      );
-      syncValue("bearingToDestination", bearing);  // ✅ this does everything
-    } else {
-      syncValue("bearingToDestination", null);
-    }
-  }, [lat, lon, currentDestination]);
-  
+
 
 
   function formatEta(seconds) {
@@ -463,7 +461,7 @@ const {
       className: "boat-marker",
       html: `
         <img
-          src="icons/boat.png"
+          src="../icons/boat.png"
           style="
             width: 64px;
             height: 64px;

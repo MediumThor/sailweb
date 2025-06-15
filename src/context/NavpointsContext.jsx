@@ -100,6 +100,7 @@ export function NavpointsProvider({ children }) {
         addNavpoint,
         removeNavpoint,
         destinations,
+        setDestinations, // ✅ <--- Add this line
         addDestination,
         clearDestinations,
         fetchNavpoints,
