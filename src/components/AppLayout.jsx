@@ -54,7 +54,6 @@ export default function AppLayout({ nightMode, signalkData, setNightMode, bright
                 setBrightness={setBrightness}
               />} />
             <Route path="/charts" element={<Charts layline={layline} setLayline={setLayline} />} />
-            <Route path="/microcharts" element={<MicroCharts layline={layline} setLayline={setLayline} />} />
             <Route path="/gps" element={<GPS />} />
             <Route path="/weather" element={<Weather />} />
             <Route path="/wifi" element={<Wifi />} />

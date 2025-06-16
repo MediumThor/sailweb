@@ -3,9 +3,9 @@ import { useSidebar } from "../context/SidebarContext";
 import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
-  { label: "Dashboard", path: "/" },
+ // { label: "Dashboard", path: "/" },
   { label: "Charts", path: "/charts" },
-  { label: "Race", path: "/race" },
+ 
   { label: "Weather", path: "/weather" },
   { label: "Settings", path: "/settings" },
 ];

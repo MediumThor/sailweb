@@ -4,17 +4,14 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
+  base: '/sailweb/',  // ✅ This is required for Vercel subfolder hosting
   plugins: [react()],
   server: {
-    host: '0.0.0.0', // ✅ Keeps it accessible across your network (e.g., pi5.local)
+    host: '0.0.0.0',
     port: 5173,
-    allowedHosts: ['.ngrok-free.app'],
-    allowedHosts: ['pi5.local'], // ✅ this line allows access from pi5.local
-
+    allowedHosts: ['.ngrok-free.app', 'pi5.local'],
     watch: {
       ignored: [path.resolve(__dirname, 'public/charts/**')],
     },
-    
   },
-  
 });
