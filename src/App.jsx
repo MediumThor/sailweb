@@ -19,25 +19,7 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
 
-  useEffect(() => {
-    const socket = new WebSocket("ws://192.168.68.57:3000/signalk/v1/stream");
-
-    socket.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        if (msg.updates) {
-          setSignalkData((prev) => ({ ...prev, ...msg }));
-        }
-      } catch (e) {
-        console.error("Failed to parse SignalK message", e);
-      }
-    };
-
-    socket.onerror = (error) => console.error("WebSocket error:", error);
-    socket.onclose = () => console.warn("SignalK WebSocket closed");
-
-    return () => socket.close();
-  }, []);
+  
 
   const { lat, lon } = { lat: 43.107, lon: -88.055 }; // fallback dummy GPS
   const baseUrl = "https://embed.windy.com/embed.html";

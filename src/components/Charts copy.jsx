@@ -43,18 +43,7 @@ export default function Charts() {
       .then(data => setGeoData(data));
   }, []);
 
-  useEffect(() => {
-    const ws = new WebSocket(`ws://${window.location.hostname}:8081`);
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        liveData.set(data);
-      } catch (err) {
-        console.error("WebSocket parse error:", err);
-      }
-    };
-    return () => ws.close();
-  }, []);
+
 
   const { lat, lon } = liveData.get();
   const center = [lat, lon];

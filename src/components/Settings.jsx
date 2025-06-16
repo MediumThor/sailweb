@@ -43,22 +43,7 @@ const {
     localStorage.setItem("soundEffects", soundEffects);
   }, [soundEffects]);
 
-  useEffect(() => {
-    const ws = new WebSocket("ws://192.168.68.57:3000/signalk/v1/stream");
-    setSocket(ws);
 
-    ws.onopen = () => setConnectionStatus("connected");
-    ws.onclose = () => setConnectionStatus("disconnected");
-    ws.onerror = () => setConnectionStatus("error");
-    ws.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data);
-        if (msg.updates) setLatestMessage(msg);
-      } catch {}
-    };
-
-    return () => ws.close();
-  }, []);
 
   const playClickSound = () => {
     if (soundEffects && clickSoundRef.current) {

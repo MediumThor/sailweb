@@ -27,21 +27,6 @@ export default function Microdash({ signalkData }) {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const ws = new WebSocket(`ws://${window.location.hostname}:8081`);
-    ws.onmessage = (event) => {
-      try {
-        const incoming = JSON.parse(event.data);
-        liveData.set(incoming);
-      } catch (err) {
-        console.error("WebSocket error:", err);
-      }
-    };
-    ws.onopen = () => console.log("📡 Connected to serial WebSocket");
-    ws.onerror = (err) => console.error("WebSocket error:", err);
-    ws.onclose = () => console.log("WebSocket closed");
-    return () => ws.close();
-  }, []);
 
  
 
