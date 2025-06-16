@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  base: '/sailweb/',  // ✅ This is required for Vercel subfolder hosting
   plugins: [react()],
   server: {
     host: '0.0.0.0',

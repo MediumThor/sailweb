@@ -1,6 +1,0 @@
-{
-    "rewrites": [
-      { "source": "/sailweb", "destination": "/" },
-      { "source": "/sailweb/(.*)", "destination": "/index.html" }
-    ]
-  }
