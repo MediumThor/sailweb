@@ -15,7 +15,8 @@ export function FleetProvider({ children }) {
   }
 
   useEffect(() => {
-    const ws = new WebSocket("wss://sailweb.saildash.club");
+    // POINT TO NEW WS SUBDOMAIN
+    const ws = new WebSocket(`wss://ws.saildash.club`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
