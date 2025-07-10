@@ -12,6 +12,8 @@ import { calculateBearing } from "../utils/calculateBearing";
 import LaylineModal from "./LaylineModal";
 import clsx from "clsx";
 import { syncValue } from "../utils/syncStorage";
+import { useFleet } from "../context/FleetContext";
+
 
 // Click handler for adding marker
 function ClickPopup({ setClickLatLng, openModal }) {
@@ -75,6 +77,37 @@ const [isWindPanelExpanded, setIsWindPanelExpanded] = useState(false);
 const [windFocusKey, setWindFocusKey] = useState("true");
 const windRef = useRef();
 const compass = liveData.getCompassHeading();
+const { fleet, getVesselColor } = useFleet();
+
+console.log("Fleet array length:", fleet.length);
+
+
+{/* FLEET ICON SETTINGS */}
+
+const fleetIcon = (color) =>
+L.divIcon({
+className: "fleet-marker",
+html: `
+<div style="
+  width: 26px;
+  height: 26px;
+  background: ${color};
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(0,0,0,0.5);
+  animation: pulse 1s infinite;
+"></div>
+<style>
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+</style>
+`,
+iconSize: [16, 16],
+iconAnchor: [8, 8],
+});
 
   
 const {
@@ -362,7 +395,22 @@ const {
           </Marker>
         )}
 
-
+{fleet.map((vessel, index) => (
+  vessel.latitude && vessel.longitude && (
+     <Marker
+    key={`fleet-${index}`}
+    position={[vessel.latitude, vessel.longitude]}
+    icon={fleetIcon(getVesselColor(vessel.id))}
+  >
+    <Popup>
+      <strong>{vessel.name}</strong><br />
+      Lat: {vessel.latitude.toFixed(5)}<br />
+      Lon: {vessel.longitude.toFixed(5)}<br />
+      Battery: {vessel.battery}%
+    </Popup>
+  </Marker>
+  )
+))}
 
 {showAutoAdvanceRadius && isValidCoord(lat) && isValidCoord(lon) && (
   <Circle

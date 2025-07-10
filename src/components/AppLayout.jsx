@@ -23,6 +23,8 @@ import SetDestinationModal from "./SetDestinationModal";
 import LaylineModal from "./LaylineModal";
 import WindowModal from "../context/WindowModal";
 import currentLocation from "../utils/currentLocation";
+import Fleet from "./Fleet"; // ✅ new
+
 
 export default function AppLayout({ nightMode, signalkData, setNightMode, brightness, setBrightness }) {
   const { lat, lon } = currentLocation;
@@ -63,6 +65,8 @@ export default function AppLayout({ nightMode, signalkData, setNightMode, bright
             <Route path="/music/spotify/player" element={<SpotifyPlayer />} />
             <Route path="/microdisplay" element={<Microdisplay />} />
             <Route path="/race" element={<Race />} /> {/* ✅ NEW ROUTE */}
+            <Route path="/fleet" element={<Fleet />} />
+
           </Routes>
         </main>
       </div>

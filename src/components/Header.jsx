@@ -4,7 +4,7 @@ import { useSidebar } from "../context/SidebarContext";
 export default function Header({ nightMode }) {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
   const [isWifiConnected, setIsWifiConnected] = useState(false);
-  const [boatName, setBoatName] = useState(() => localStorage.getItem("boatName") || "Saildash");
+  const [boatName, setBoatName] = useState(() => localStorage.getItem("boatName") || "Sailweb");
 
   useEffect(() => {
     const updateFromStorage = () => {

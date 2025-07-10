@@ -7,6 +7,7 @@ import { ModalProvider } from "./context/ModalContext";
 import { KeyboardProvider } from "./context/KeyboardContext";
 import TouchKeyboard from "./components/TouchKeyboard";
 import SplashScreen from "./components/SplashScreen";
+import { FleetProvider } from "./context/FleetContext";
 
 
 import AppLayout from "./components/AppLayout";
@@ -33,6 +34,7 @@ function App() {
   return showSplash ? (
     <SplashScreen onDone={() => setShowSplash(false)} />
   ) : (
+    <FleetProvider>
     <KeyboardProvider>
       <DisplaySettingsProvider>
         <NavpointsProvider>
@@ -72,6 +74,8 @@ function App() {
       </DisplaySettingsProvider>
       <TouchKeyboard />
     </KeyboardProvider>
+   </FleetProvider>
+
   );
   
 }
