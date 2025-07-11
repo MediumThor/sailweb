@@ -18,33 +18,33 @@ export function DisplaySettingsProvider({ children }) {
     return stored ? parseInt(stored) : 61;
   });
 
-  const [showSpeedPanel, setShowSpeedPanel] = useState(() => {
-    return localStorage.getItem("showSpeedPanel") !== "false";
-  });
+  const [showSpeedPanel, setShowSpeedPanel] = useState(() =>
+    localStorage.getItem("showSpeedPanel") !== "false"
+  );
 
-  const [showWindPanel, setShowWindPanel] = useState(() => {
-    return localStorage.getItem("showWindPanel") !== "false";
-  });
+  const [showWindPanel, setShowWindPanel] = useState(() =>
+    localStorage.getItem("showWindPanel") !== "false"
+  );
 
-  const [showGpsMarker, setShowGpsMarker] = useState(() => {
-    return localStorage.getItem("showGpsMarker") !== "false";
-  });
+  const [showGpsMarker, setShowGpsMarker] = useState(() =>
+    localStorage.getItem("showGpsMarker") !== "false"
+  );
 
-  const [showSoundings, setShowSoundings] = useState(() => {
-    return localStorage.getItem("showSoundings") !== "false";
-  });
+  const [showSoundings, setShowSoundings] = useState(() =>
+    localStorage.getItem("showSoundings") !== "false"
+  );
 
-  const [showNavpoints, setShowNavpoints] = useState(() => {
-    return localStorage.getItem("showNavpoints") !== "false";
-  });
+  const [showNavpoints, setShowNavpoints] = useState(() =>
+    localStorage.getItem("showNavpoints") !== "false"
+  );
 
-  const [showAutoAdvanceRadius, setShowAutoAdvanceRadius] = useState(() => {
-    return localStorage.getItem("showAutoAdvanceRadius") === "true";
-  });
+  const [showAutoAdvanceRadius, setShowAutoAdvanceRadius] = useState(() =>
+    localStorage.getItem("showAutoAdvanceRadius") === "true"
+  );
 
-  const [mapSource, setMapSource] = useState(() => {
-    return localStorage.getItem("mapSource") || "offline";
-  });
+  const [mapSource, setMapSource] = useState(() =>
+    localStorage.getItem("mapSource") || "esri" // 🔥 DEFAULT TO "esri"
+  );
 
   const [showBathyShallow, setShowBathyShallow] = useState(() =>
     localStorage.getItem("showBathyShallow") === "true"
@@ -96,28 +96,17 @@ export function DisplaySettingsProvider({ children }) {
   return (
     <DisplaySettingsContext.Provider
       value={{
-        showSpeedPanel,
-        setShowSpeedPanel,
-        showWindPanel,
-        setShowWindPanel,
-        showGpsMarker,
-        setShowGpsMarker,
-        showSoundings,
-        setShowSoundings,
-        showNavpoints,
-        setShowNavpoints,
-        autoAdvanceDistance,
-        setAutoAdvanceDistance,
-        showAutoAdvanceRadius,
-        setShowAutoAdvanceRadius,
-        mapSource,
-        setMapSource,
-        showBathyShallow,
-        setShowBathyShallow,
-        showBathyDeep,
-        setShowBathyDeep,
-        compassOffset,
-        setCompassOffset,
+        showSpeedPanel, setShowSpeedPanel,
+        showWindPanel, setShowWindPanel,
+        showGpsMarker, setShowGpsMarker,
+        showSoundings, setShowSoundings,
+        showNavpoints, setShowNavpoints,
+        autoAdvanceDistance, setAutoAdvanceDistance,
+        showAutoAdvanceRadius, setShowAutoAdvanceRadius,
+        mapSource, setMapSource,
+        showBathyShallow, setShowBathyShallow,
+        showBathyDeep, setShowBathyDeep,
+        compassOffset, setCompassOffset,
       }}
     >
       {children}
