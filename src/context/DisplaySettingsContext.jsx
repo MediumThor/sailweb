@@ -1,69 +1,54 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-// Create the context
 const DisplaySettingsContext = createContext();
-
-// Export a hook to use the context easily
 export const useDisplaySettings = () => useContext(DisplaySettingsContext);
 
-// Export helper to access compass offset outside of React components
 export function getCompassOffset() {
   return parseFloat(localStorage.getItem("compassOffset") || "0");
 }
 
-// Create the provider
 export function DisplaySettingsProvider({ children }) {
-  const [autoAdvanceDistance, setAutoAdvanceDistance] = useState(() => {
-    const stored = localStorage.getItem("autoAdvanceDistance");
-    return stored ? parseInt(stored) : 61;
-  });
+  const [autoAdvanceDistance, setAutoAdvanceDistance] = useState(() =>
+    parseInt(localStorage.getItem("autoAdvanceDistance") || "61")
+  );
 
   const [showSpeedPanel, setShowSpeedPanel] = useState(() =>
     localStorage.getItem("showSpeedPanel") !== "false"
   );
-
   const [showWindPanel, setShowWindPanel] = useState(() =>
     localStorage.getItem("showWindPanel") !== "false"
   );
-
   const [showGpsMarker, setShowGpsMarker] = useState(() =>
     localStorage.getItem("showGpsMarker") !== "false"
   );
-
   const [showSoundings, setShowSoundings] = useState(() =>
     localStorage.getItem("showSoundings") !== "false"
   );
-
   const [showNavpoints, setShowNavpoints] = useState(() =>
     localStorage.getItem("showNavpoints") !== "false"
   );
-
   const [showAutoAdvanceRadius, setShowAutoAdvanceRadius] = useState(() =>
     localStorage.getItem("showAutoAdvanceRadius") === "true"
   );
 
-  const [mapSource, setMapSource] = useState(() =>
-    localStorage.getItem("mapSource") || "esri" // 🔥 DEFAULT TO "esri"
-  );
+  // 🔥 FORCE to "esri" on load, ignoring localStorage
+  const [mapSource, setMapSource] = useState("esri");
 
   const [showBathyShallow, setShowBathyShallow] = useState(() =>
     localStorage.getItem("showBathyShallow") === "true"
   );
-
   const [showBathyDeep, setShowBathyDeep] = useState(() =>
     localStorage.getItem("showBathyDeep") === "true"
   );
-
   const [compassOffset, setCompassOffset] = useState(() =>
     parseFloat(localStorage.getItem("compassOffset") || "0")
   );
 
-  // Save compass offset
+  // Effects to keep localStorage updated
   useEffect(() => {
     localStorage.setItem("compassOffset", compassOffset);
   }, [compassOffset]);
 
-  // Save booleans
   useEffect(() => {
     localStorage.setItem("showSpeedPanel", showSpeedPanel);
     localStorage.setItem("showWindPanel", showWindPanel);
@@ -72,7 +57,6 @@ export function DisplaySettingsProvider({ children }) {
     localStorage.setItem("showNavpoints", showNavpoints);
   }, [showSpeedPanel, showWindPanel, showGpsMarker, showSoundings, showNavpoints]);
 
-  // Save numeric and select-type settings
   useEffect(() => {
     localStorage.setItem("autoAdvanceDistance", autoAdvanceDistance);
   }, [autoAdvanceDistance]);
@@ -87,11 +71,8 @@ export function DisplaySettingsProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem("showBathyShallow", showBathyShallow);
-  }, [showBathyShallow]);
-
-  useEffect(() => {
     localStorage.setItem("showBathyDeep", showBathyDeep);
-  }, [showBathyDeep]);
+  }, [showBathyShallow, showBathyDeep]);
 
   return (
     <DisplaySettingsContext.Provider
