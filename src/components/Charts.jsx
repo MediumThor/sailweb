@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, Polyline, Circle, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, Polyline, Circle, useMapEvents, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import liveData from "../utils/liveData";
@@ -16,20 +16,21 @@ import { useFleet } from "../context/FleetContext";
 
 
 // Click handler for adding marker
-function ClickPopup({ setClickLatLng, openModal }) {
+function ClickPopup({ setClickLatLng, openModal, ignoreNextClick }) {
   useMapEvents({
     click(e) {
+      if (ignoreNextClick.current) {
+        ignoreNextClick.current = false; // reset it
+        return; // skip this click
+      }
       const clickedLatLng = e.latlng;
-      setClickLatLng(clickedLatLng); // Set the coordinates for the clicked location
-
-      // Launch the AddNavpointModal with coordinates passed as props
-      openModal("addNavpoint", clickedLatLng); // Pass the clicked LatLng to modal
+      setClickLatLng(clickedLatLng);
+      openModal("addNavpoint", clickedLatLng);
     },
-    
   });
-
   return null;
 }
+
 
 export default function Charts({ layline, setLayline }) {
   const [geoData, setGeoData] = useState(null);
@@ -75,6 +76,8 @@ const [headingFocusKey, setHeadingFocusKey] = useState("heading");
 
 const [isWindPanelExpanded, setIsWindPanelExpanded] = useState(false);
 const [windFocusKey, setWindFocusKey] = useState("true");
+const ignoreNextClick = useRef(false);
+
 const windRef = useRef();
 const compass = liveData.getCompassHeading();
 const { fleet, getVesselColor } = useFleet();
@@ -116,7 +119,6 @@ const {
   showAutoAdvanceRadius,  // ✅ Add this
   showWindPanel,
   showGpsMarker,
-  showSoundings,
   showNavpoints,
 } = useDisplaySettings();
 
@@ -126,6 +128,27 @@ const {
     : `http://${window.location.hostname}:8085`;
 
 
+    function MapZoomControls({ ignoreNextClick }) {
+      const map = useMap();
+      return (
+        <div className="absolute top-4 right-4 flex flex-col space-y-4 z-[1000]">
+          <button
+            onMouseDown={() => ignoreNextClick.current = true}
+            onClick={() => map.zoomIn()}
+            className="manual-zoom-button bg-zinc-800 bg-opacity-80 hover:bg-zinc-700 text-white px-6 py-4 rounded-xl text-3xl font-bold shadow-lg active:scale-95 transition"
+          >
+            +
+          </button>
+          <button
+            onMouseDown={() => ignoreNextClick.current = true}
+            onClick={() => map.zoomOut()}
+            className="manual-zoom-button bg-zinc-800 bg-opacity-80 hover:bg-zinc-700 text-white px-6 py-4 rounded-xl text-3xl font-bold shadow-lg active:scale-95 transition"
+          >
+            −
+          </button>
+        </div>
+      );
+    }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -153,22 +176,12 @@ const {
   
 
 
-
-
   const tempMarkerIcon = L.icon({
     iconUrl: "icons/location-pin.png", // Replace with your boat icon URL
     iconSize: [32, 32], // Adjust the size to fit the image
     iconAnchor: [16, 32], // Anchor point of the icon (typically bottom center)
     popupAnchor: [0, -32], // Position the popup above the marker
   });
-
-  const navpointIcon = L.icon({
-    iconUrl: "icons/location-pin.png", // Replace with your boat icon URL
-    iconSize: [32, 32], // Adjust the size to fit the image
-    iconAnchor: [16, 32], // Anchor point of the icon (typically bottom center)
-    popupAnchor: [0, -32], // Position the popup above the marker
-  });
-
 
   
 
@@ -249,19 +262,6 @@ const {
     return total / 1852; // Convert meters to nautical miles
   }
 
-  function getTimeToDestinationNM(currentLat, currentLon, destinations, speedKnots) {
-    const tripDistance = calculateTotalTripDistance(currentLat, currentLon, destinations);
-    if (speedKnots <= 0 || isNaN(speedKnots)) return null;
-    const hours = tripDistance / speedKnots;
-    return Math.floor(hours * 60); // Convert to minutes
-  }
-
-  function getTimeToNextWaypointNM(currentLat, currentLon, waypoint, speedKnots) {
-    if (!waypoint || speedKnots <= 0 || isNaN(speedKnots)) return null;
-    const dist = L.latLng(currentLat, currentLon).distanceTo(L.latLng(waypoint.lat, waypoint.lon)) / 1852;
-    const hours = dist / speedKnots;
-    return Math.floor(hours * 60); // minutes
-  }
 
   function advanceToNextWaypoint() {
     if (destinations.length > 1) {
@@ -364,16 +364,18 @@ const {
 
 {mapSource === "esri" && navigator.onLine && (
   <TileLayer
-    url="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    attribution="Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics"
-    maxZoom={20}
-    zIndex={1000} // draw on top
-  />
+  url="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+  attribution="Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics"
+  maxZoom={20}
+  zIndex={1000}
+  updateWhenIdle={false}   // load more eagerly
+  keepBuffer={7}            // keep 7 extra rows/columns outside viewport
+/>
 )}
 
 
         {/* ClickHandler Popup: Click to add marker */}
-        <ClickPopup setClickLatLng={setClickLatLng} />
+        <ClickPopup setClickLatLng={setClickLatLng} openModal={openModal} ignoreNextClick={ignoreNextClick} />
 
         {/* Show clicked Lat/Lon marker */}
         {clickLatLng && (
@@ -397,17 +399,18 @@ const {
 
 {fleet.map((vessel, index) => (
   vessel.latitude && vessel.longitude && (
-     <Marker
-    key={`fleet-${index}`}
+    <Marker
+    key={`fleet-${vessel.id}-${vessel.latitude}-${vessel.longitude}`}
     position={[vessel.latitude, vessel.longitude]}
     icon={fleetIcon(getVesselColor(vessel.id))}
   >
     <Popup>
-      <strong>{vessel.name}</strong><br />
-      Lat: {vessel.latitude.toFixed(5)}<br />
-      Lon: {vessel.longitude.toFixed(5)}<br />
-      Battery: {vessel.battery}%
-    </Popup>
+  <strong>{vessel.name}</strong><br />
+  Lat: {vessel.latitude.toFixed(5)}<br />
+  Lon: {vessel.longitude.toFixed(5)}<br />
+  Battery: {vessel.battery ?? "?"} %<br />
+  Last seen: {vessel.lastSeen ? new Date(vessel.lastSeen).toLocaleTimeString() : "—"}
+</Popup>
   </Marker>
   )
 ))}
@@ -425,72 +428,10 @@ const {
   />
 )}
 
-        {/* Soundings */}
-        {showSoundings && geoData && (
-          <GeoJSON
-            data={geoData}
-            pointToLayer={(feature, latlng) =>
-              L.circleMarker(latlng, {
-                radius: 4,
-                fillColor: "#0066cc",
-                color: "#fff",
-                weight: 1,
-                fillOpacity: 0.9,
-              })
-            }
-          />
-        )}
+   
 
+    
 
-      {showWindPanel && (
-      <div
-      ref={windRef}
-      className={clsx(
-        "absolute bottom-4 left-4 z-[1000] text-white rounded-2xl shadow-xl bg-zinc-900 bg-opacity-60 transition-all duration-300",
-        isWindPanelExpanded ? "px-8 py-6 w-[28rem] space-y-4" : "px-6 py-4 w-72 space-y-2"
-      )}
-    >
-      {isWindPanelExpanded && (
-        <button
-          className="absolute top-2 right-2 text-white text-lg bg-zinc-700 hover:bg-zinc-600 rounded px-2"
-          onClick={() => setIsWindPanelExpanded(false)}
-        >
-          ⤫
-        </button>
-      )}
-    
-      {isWindPanelExpanded ? (
-        <div className="space-y-3 text-xl mt-4">
-          {["true", "apparent"].map((key) => (
-            <div
-              key={key}
-              onClick={() => setWindFocusKey(key)}
-              className={clsx(
-                "cursor-pointer transition-all",
-                windFocusKey === key ? "text-7xl text-white font-extrabold" : "text-xl text-zinc-300"
-              )}
-            >
-              {{
-                apparent: `Apparent: ${liveData.get().apparentWindDirection}°  ${liveData.get().apparentWindSpeed} kn`,
-                true: `True: ${liveData.get().trueWindDirection}°  ${liveData.get().trueWindSpeed} kn`,
-              }[key]}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div onClick={() => setIsWindPanelExpanded(true)} className="space-y-1 cursor-pointer">
-          <div className="text-xl">
-          Apparent: {liveData.get().apparentWindDirection}°  {liveData.get().apparentWindSpeed} kn
-          </div>
-          <div className="text-xl">
-          True: {liveData.get().trueWindDirection}°  {liveData.get().trueWindSpeed} kn
-          </div>
-        </div>
-      )}
-    </div>
-    
-     
-      )}
 
         {/* GPS Marker */}
         {showGpsMarker && isValidCoord(lat) && isValidCoord(lon) && (
@@ -502,8 +443,8 @@ const {
         <img
           src="icons/boat.png"
           style="
-            width: 64px;
-            height: 64px;
+            width: 54px;
+            height: 54px;
             transform: translate(-50%, -50%) rotate(${compass}deg);
 
             transition: transform 0.2s linear;
@@ -562,188 +503,16 @@ const {
   />
 )}
 
-{(!isValidCoord(liveLat) || !isValidCoord(liveLon)) && (
-  <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-md shadow-md z-[2000] text-sm font-semibold">
-    ⚠️ GPS signal unavailable — showing fallback location (Port Washington)
-  </div>
-)}
+<MapZoomControls ignoreNextClick={ignoreNextClick} />
+
 
       </MapContainer>
 
-      {/* Bottom buttons */}
-      <div className="absolute bottom-4 right-4 flex flex-col gap-4 z-[1000]">
-        <button
-          className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-6 rounded-full"
-          onClick={() => openModal("addNavpoint")}
-        >
-          ➕ Add Navpoint
-        </button>
-
-        {navpoints.length > 0 && (
-          <button
-            className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-6 rounded-full"
-            onClick={() => openModal("setDestination")}
-          >
-            Set Destination
-          </button>
-        )}
-
-<button
-  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full"
-  onClick={() => openModal("layline")}
->
-  ➤ Show Rhumb Line
-</button>
-
-      </div>
-
-     {/* Speed Display - Upper Right Expandable */}
-     <div
-  ref={speedRef}
-  className={clsx(
-    "absolute top-4 right-4 z-[1000] text-white rounded-2xl shadow-xl bg-zinc-900 bg-opacity-60 transition-all duration-300",
-    isSpeedPanelExpanded ? "px-8 py-6 w-80 space-y-4" : "px-4 py-2 w-40 space-y-2"
-  )}
->
-  {/* Minimize Button */}
-  {isSpeedPanelExpanded && (
-    <button
-      className="absolute top-2 right-2 text-white text-lg bg-zinc-700 hover:bg-zinc-600 rounded px-2"
-      onClick={() => setIsSpeedPanelExpanded(false)}
-    >
-      ⤫
-    </button>
-  )}
-
-  {/* Expanded State */}
-  {isSpeedPanelExpanded ? (
-    <div className="space-y-3 text-xl mt-4">
-      {["speed", "heading", "wind", "depth"].map((key) => (
-        <div
-          key={key}
-          onClick={() => setSpeedFocusKey(key)}
-          className={clsx(
-            "cursor-pointer transition-all",
-            speedFocusKey === key ? "text-7xl text-white font-extrabold" : "text-xl text-zinc-300"
-          )}
-        >
-          {{
-            speed: `${liveData.getSpeed()?.toFixed(1) ?? "—"} kn`,
-            heading: `HDG: ${compass.toFixed(0)}°`,
-            wind: `Wind: ${liveData.get().windAngle?.toFixed(0) ?? "—"}°`,
-            depth: `Depth: ${liveData.get().depthFeet?.toFixed(1) ?? "—"} ft`,
-          }[key]}
-        </div>
-      ))}
-    </div>
-  ) : (
-    // Collapsed: show dominant value only
-    <div
-      onClick={() => setIsSpeedPanelExpanded(true)}
-      className="text-3xl font-bold cursor-pointer"
-    >
-      {(() => {
-        switch (speedFocusKey) {
-          case "heading":
-            return `HDG: ${((compass + 360) % 360).toFixed(0)}°`;
-          case "wind":
-            return `WND: ${liveData.get().windAngle?.toFixed(0) ?? "—"}°`;
-          case "depth":
-            return `DP: ${liveData.get().depthFeet?.toFixed(1) ?? "—"}ft`;
-          default:
-            return `${liveData.getSpeed()?.toFixed(1) ?? "—"} kn`;
-        }
-      })()}
-    </div>
-  )}
-</div>
 
 
 
 
-{/* Heading Display - Upper Left Expandable */}
-<div
-  ref={headingRef}
-  className={clsx(
-    "absolute top-4 left-4 z-[1000] text-white rounded-2xl shadow-xl bg-zinc-900 bg-opacity-60 transition-all duration-300",
-    isHeadingPanelExpanded ? "px-8 py-6 w-80 space-y-4" : "px-4 py-2 w-40 space-y-2"
-  )}
->
-  {/* Minimize Button */}
-  {isHeadingPanelExpanded && (
-    <button
-      className="absolute top-2 right-2 text-white text-lg bg-zinc-700 hover:bg-zinc-600 rounded px-2"
-      onClick={() => setIsHeadingPanelExpanded(false)}
-    >
-      ⤫
-    </button>
-  )}
 
-  {/* Expanded View */}
-  {isHeadingPanelExpanded ? (
-    <div className="space-y-3 text-xl mt-4">
-      {["heading", "heel", "pitch"].map((key) => (
-        <div
-          key={key}
-          onClick={() => setHeadingFocusKey(key)}
-          className={clsx(
-            "cursor-pointer transition-all",
-            headingFocusKey === key ? "text-7xl text-white font-extrabold" : "text-xl text-zinc-300"
-          )}
-        >
-          {{
-            heading: `HDG: ${((compass + 360) % 360).toFixed(0)}°`,
-            heel: `Heel: ${liveData.get().heel?.toFixed(1) ?? "—"}°`,
-            pitch: `Pitch: ${liveData.get().pitch?.toFixed(1) ?? "—"}°`,
-          }[key]}
-        </div>
-      ))}
-    </div>
-  ) : (
-    // Collapsed View
-    <div
-      onClick={() => setIsHeadingPanelExpanded(true)}
-      className="text-3xl font-bold cursor-pointer"
-    >
-      {(() => {
-        switch (headingFocusKey) {
-          case "heel":
-            return `Heel: ${liveData.get().heel?.toFixed(1) ?? "—"}°`;
-          case "pitch":
-            return `Pitch: ${liveData.get().pitch?.toFixed(1) ?? "—"}°`;
-          default:
-            return `${((compass + 360) % 360).toFixed(0)}°`;
-        }
-      })()}
-    </div>
-  )}
-</div>
-
-
-      {/* Time to Current Destination */}
-      {currentDestination && distanceToDestination != null && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-zinc-800 bg-opacity-80 text-white rounded-2xl px-14 py-4 shadow-xl z-[1000] text-center space-y-3">
-          <div className="flex items-center justify-center gap-6 text-8xl font-bold">
-            <div>{calculateBearing(lat, lon, currentDestination.lat, currentDestination.lon).toFixed(0)}°</div>
-            <div className="w-10 h-10" style={{
-              transform: `rotate(${calculateBearing(lat, lon, currentDestination.lat, currentDestination.lon)}deg)`,
-              transition: "transform 0.3s ease",
-            }}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"
-                className="w-10 h-10 text-amber-400">
-                <path d="M12 2l6 8h-4v8h-4v-8H6l6-8z" />
-              </svg>
-            </div>
-            <div className="text-3xl">{distanceToDestination.toFixed(2)} nm</div>
-          </div>
-          {etaNextMin != null && (
-          <div className="text-2xl font-medium text-zinc-300">
-           ETA (Next): {etaNextMin} {etaNextSec}
-           </div>
-           )}
-
-        </div>
-      )}
 
         {destinations.length > 0 && isValidCoord(lat) && isValidCoord(lon) && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-zinc-800 bg-opacity-60 text-white rounded-full px-8 py-4 text-xl font-semibold shadow-xl z-[1000] text-center space-y-1">
@@ -753,11 +522,7 @@ const {
     Next Leg: {legBearing}°
   </div>
 )}
-{liveData.getSpeed() > 0 && (
-  <>
- <div>ETA (Full Trip): {etaFullMin}</div>
-  </>
-)}
+
         </div>
       )}
 

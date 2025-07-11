@@ -43,11 +43,11 @@ export default function AppLayout({ nightMode, signalkData, setNightMode, bright
     <div className={`flex h-screen transition-all duration-300 bg-zinc-900 ${nightMode ? "text-amber-500" : "text-white"}`}
       style={{ filter: `brightness(${brightness / 100})` }}>
       <Sidebar nightMode={nightMode} boatName={localStorage.getItem("boatName")} />
-      <div className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ${isSidebarOpen ? "ml-80" : "ml-0"}`}>
-        <Header nightMode={nightMode} />
+      <div className="flex flex-col flex-1 overflow-hidden transition-all duration-300">
+      <Header nightMode={nightMode} />
         <main className="flex-1 overflow-hidden h-full">
           <Routes>
-            <Route path="/" element={<Dashboard signalkData={signalkData} />} />
+            <Route path="/" element={<Charts layline={layline} setLayline={setLayline} />} />
             <Route path="/settings" element={
               <Settings
                 nightMode={nightMode}

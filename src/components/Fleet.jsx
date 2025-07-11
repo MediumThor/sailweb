@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useFleet } from "../context/FleetContext";
 
 export default function Fleet() {
-  const { fleet } = useFleet();
+  const { fleet, getVesselColor } = useFleet();
   const [showTrack, setShowTrack] = useState({});
 
   const toggleTrack = (id) => {
@@ -23,15 +23,29 @@ export default function Fleet() {
             key={vessel.id}
             className="bg-zinc-800 p-6 rounded-2xl shadow-md flex justify-between items-center"
           >
-            <div>
-              <div className="text-2xl font-semibold">{vessel.name}</div>
-              <div className="text-zinc-400 text-sm">
-                {vessel.latitude.toFixed(4)}, {vessel.longitude.toFixed(4)}
-              </div>
-              <div className="text-zinc-400 text-sm">
-                Battery: {vessel.battery ?? "?"}%
+            <div className="flex items-center space-x-4">
+              {/* Color circle */}
+              <div
+                style={{
+                  backgroundColor: getVesselColor(vessel.id),
+                }}
+                className="w-5 h-5 rounded-full border-2 border-white shadow"
+              ></div>
+
+              <div>
+                <div className="text-2xl font-semibold">{vessel.name}</div>
+                <div className="text-zinc-400 text-sm">
+                  {vessel.latitude.toFixed(4)}, {vessel.longitude.toFixed(4)}
+                </div>
+                <div className="text-zinc-400 text-sm">
+                  Battery: {vessel.battery ?? "?"}%
+                </div>
+                <div className="text-zinc-500 text-xs">
+                  Last seen: {vessel.lastSeen ? new Date(vessel.lastSeen).toLocaleTimeString() : "—"}
+                </div>
               </div>
             </div>
+
             <button
               onClick={() => toggleTrack(vessel.id)}
               className={`px-6 py-3 rounded-xl text-xl font-bold transition ${

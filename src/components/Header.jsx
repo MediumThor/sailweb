@@ -58,19 +58,7 @@ export default function Header({ nightMode }) {
   {boatName}
 </h1>
 
-      {/* Clock & Wi-Fi */}
-      <div className="flex items-center space-x-4 text-3xl text-right ml-auto">
-      {isWifiConnected && (
-  <img
-    src="/icons/wifi.png"
-    alt="WiFi Connected"
-    className="w-8 h-8"
-  />
-)}
-        <div className={`${nightMode ? "text-amber-300" : "text-zinc-300"}`}>
-          {new Date().toLocaleTimeString()}
-        </div>
-      </div>
+    
     </header>
   );
 }
